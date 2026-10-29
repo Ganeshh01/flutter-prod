@@ -1,0 +1,35 @@
+# VCS and tooling
+.git
+.gitignore
+.dart_tool
+.idea
+.vscode
+*.iml
+.DS_Store
+
+# Build output and platform folders (web is the only target built in the image)
+build
+android
+ios
+screens
+test
+
+# Secrets and signing material - must never enter the build context or an image layer
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+key.properties
+local.properties
+google-services.json
+GoogleService-Info.plist
+secrets/
+
+# Docs and the Docker files themselves
+README.md
+Dockerfile
+.dockerignore
+*.log

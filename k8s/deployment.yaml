@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: food-delivery-ui
+  labels:
+    app.kubernetes.io/name: food-delivery-ui
+    app.kubernetes.io/part-of: food-delivery
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: food-delivery-ui
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: food-delivery-ui
+        app.kubernetes.io/part-of: food-delivery
+    spec:
+      # The app never talks to the Kubernetes API, so do not mount a token.
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: web
+          # Local image: it must already be present on the cluster nodes (see load
+          # instructions). IfNotPresent means Kubernetes never tries to pull ":local"
+          # from a registry when it is loaded.
+          image: food-delivery-ui:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            # nginx writes its pid file and temp files to /tmp. This is the only
+            # writable path; it was tested with `docker run --read-only --tmpfs /tmp`.
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

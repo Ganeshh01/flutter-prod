@@ -1,30 +1,39 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility that Flutter provides. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flutter_app/main.dart';
+import 'package:flutter_app/pages/HomePage.dart';
+import 'package:flutter_app/widgets/BottomNavBarWidget.dart';
+
+// Flutter tests draw text in a placeholder font that is much wider than real text,
+// which makes fixed-width rows "overflow". Load the app's own bundled Roboto so the
+// test lays out the way the real app does.
+Future<void> loadRoboto() async {
+  final loader = FontLoader('Roboto');
+  for (final weight in ['Regular', 'Bold', 'Light']) {
+    loader.addFont(rootBundle.load('assets/fonts/Roboto-$weight.ttf'));
+  }
+  await loader.load();
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+  testWidgets('Home page renders its title and bottom navigation',
+      (WidgetTester tester) async {
+    await tester.runAsync(loadRoboto);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Phone-sized surface (360 x 720 logical pixels).
+    tester.binding.window.physicalSizeTestValue = Size(1080, 2160);
+    tester.binding.window.devicePixelRatioTestValue = 3.0;
+    addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+    addTearDown(tester.binding.window.clearDevicePixelRatioTestValue);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpWidget(MaterialApp(
+      theme: ThemeData(fontFamily: 'Roboto'),
+      home: HomePage(),
+    ));
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('What would you like to eat?'), findsOneWidget);
+    expect(find.byType(BottomNavBarWidget), findsOneWidget);
   });
 }

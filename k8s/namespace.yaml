@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: food-delivery
+  labels:
+    app.kubernetes.io/part-of: food-delivery
+    # The pod below is written to satisfy the "restricted" Pod Security Standard,
+    # so the namespace enforces it.
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
