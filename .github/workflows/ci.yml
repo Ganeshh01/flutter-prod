@@ -90,6 +90,8 @@ jobs:
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/healthz)" = "200"
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/)" = "200"
           test "$(docker exec ui id -u)" != "0"
+          # Every stdout line must be a JSON access-log object that carries a request_id.
+          docker logs ui 2>/dev/null | jq -e -s 'length > 0 and all(.[]; has("request_id"))' > /dev/null
           docker rm -f ui
 
       # Report-only: findings are saved as an artifact but never fail the build.

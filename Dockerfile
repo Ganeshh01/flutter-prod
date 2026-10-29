@@ -46,6 +46,9 @@ COPY --from=build /app/build/web /usr/share/nginx/html
 USER 101
 EXPOSE 8080
 
+# Keep stdout to JSON access-log lines only: silences the base image's entrypoint chatter.
+ENV NGINX_ENTRYPOINT_QUIET_LOGS=1
+
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget -q -O /dev/null http://127.0.0.1:8080/healthz || exit 1
 
