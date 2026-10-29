@@ -1,0 +1,28 @@
+{
+  "health": {"status": null, "error": "URLError: connection refused"},
+  "logs": [
+    "{\"time\":\"2026-10-29T10:00:00+00:00\",\"level\":\"info\",\"msg\":\"request\",\"request_id\":\"a1\",\"method\":\"GET\",\"path\":\"/\",\"status\":502,\"bytes\":0,\"duration_s\":0.5,\"user_agent\":\"curl/8\",\"referer\":\"\"}",
+    "{\"time\":\"2026-10-29T10:00:01+00:00\",\"level\":\"info\",\"msg\":\"request\",\"request_id\":\"a2\",\"method\":\"GET\",\"path\":\"/\",\"status\":502,\"bytes\":0,\"duration_s\":0.5,\"user_agent\":\"curl/8\",\"referer\":\"\"}"
+  ],
+  "ci": {
+    "run": {"id": 1, "name": "CI", "status": "completed", "conclusion": "failure",
+            "html_url": "https://example.invalid/run/1", "head_sha": "abc123"},
+    "jobs": {"jobs": [{"name": "Docker build, smoke test and vulnerability scan", "conclusion": "failure",
+                       "steps": [{"name": "Build image", "conclusion": "failure"}]}]}
+  },
+  "deployment": {
+    "deployment": {"spec": {"replicas": 2}, "status": {"readyReplicas": 0}},
+    "pods": {"items": [
+      {"metadata": {"name": "food-delivery-ui-abc-1"},
+       "status": {"containerStatuses": [{"ready": false, "restartCount": 7,
+                  "state": {"waiting": {"reason": "CrashLoopBackOff"}}}]}},
+      {"metadata": {"name": "food-delivery-ui-abc-2"},
+       "status": {"containerStatuses": [{"ready": false, "restartCount": 6,
+                  "state": {"waiting": {"reason": "CrashLoopBackOff"}}}]}}
+    ]},
+    "events": {"items": [
+      {"type": "Warning", "reason": "BackOff", "message": "Back-off restarting failed container",
+       "involvedObject": {"name": "food-delivery-ui-abc-1"}}
+    ]}
+  }
+}
