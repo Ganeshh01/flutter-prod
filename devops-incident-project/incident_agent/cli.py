@@ -105,6 +105,8 @@ def _add_common(p):
 
 
 def run_llm(diag, client, out):
+    out("\nAsking local model '%s' for an analysis. On a CPU-only machine this can take 1 to 3 minutes; "
+        "the rule-based diagnosis above is already complete..." % client.model)
     try:
         system, user = build_messages(diag.evidence)
         raw = client.generate_json(system, user)

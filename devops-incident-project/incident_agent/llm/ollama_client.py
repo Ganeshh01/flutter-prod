@@ -93,7 +93,8 @@ class OllamaClient:
             raise OllamaError("model %r is not installed. Run: ollama pull %s" % (self.model, self.model))
         payload = {"model": self.model, "stream": False, "format": SCHEMA,
                    "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
-                   "options": {"temperature": 0, "num_ctx": 4096}}
+                   # num_predict caps the answer length so a slow CPU cannot run on for minutes.
+                   "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 600}}
         reply = self._http("POST", self.base_url + "/api/chat", payload, self.timeout)
         content = (reply.get("message") or {}).get("content")
         if not isinstance(content, str) or not content.strip():
