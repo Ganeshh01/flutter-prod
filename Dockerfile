@@ -43,9 +43,7 @@ COPY --from=build /app/build/web /usr/share/nginx/html
 
 # Back to the base image's non-root user (uid 101). It listens unprivileged on 8080
 # and writes only to /tmp.
-RUN sudo useradd -m ganesh
-RUN sudo user ganesh
-USER ganesh
+USER 101
 EXPOSE 8080
 
 # Keep stdout to JSON access-log lines only: silences the base image's entrypoint chatter.
