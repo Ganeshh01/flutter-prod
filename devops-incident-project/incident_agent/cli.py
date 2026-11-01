@@ -10,6 +10,7 @@ from .analyzer import SOURCES, diagnose
 from .approval import ApprovalGate, ApprovalRequired, Executor, PolicyViolation
 from .audit import AuditLog
 from .llm.ollama_client import DEFAULT_MODEL, OllamaClient, OllamaError
+from .llm.gemini_client import GeminiClient, GeminiError
 from .llm.prompt import build_messages
 from .llm.validate import ValidationError, validate
 from .models import assign_ids
@@ -96,24 +97,42 @@ def _add_common(p):
     p.add_argument("--namespace", default="food-delivery")
     p.add_argument("--deployment", default="food-delivery-ui")
     p.add_argument("--bundle", help="offline JSON file used instead of live systems")
-    p.add_argument("--llm", action="store_true", help="add an analysis from a local Ollama model")
-    p.add_argument("--model", default=None, help="Ollama model (default: $OLLAMA_MODEL or %s)" % DEFAULT_MODEL)
-    p.add_argument("--ollama-url", default=None, help="must be localhost (default http://127.0.0.1:11434)")
+    p.add_argument(
+        "--llm",
+        action="store_true",
+        help="add an AI-powered incident analysis",
+    )
+
+    p.add_argument(
+        "--provider",
+        choices=("ollama", "gemini"),
+        default="ollama",
+        help="AI provider (default: ollama)",
+    )
+
+    p.add_argument("--model", default=None, help="AI model name")
+    p.add_argument("--ollama-url", default=None, help="Ollama URL (localhost only)")
     p.add_argument("--interactive", action="store_true", help="offer each suggested command for approval")
     p.add_argument("--approver", default="operator")
     p.add_argument("--audit-log", default="incident-audit.jsonl")
 
 
-def run_llm(diag, client, out):
-    out("\nAsking local model '%s' for an analysis. On a CPU-only machine this can take 1 to 3 minutes; "
-        "the rule-based diagnosis above is already complete..." % client.model)
+def run_llm(diag, client, out, provider="ollama"):
+    out("\nAsking %s for an analysis. "
+    "The rule-based diagnosis above is already complete..."
+    % (("local model '%s'" % client.model) if provider == "ollama"
+       else ("Gemini model '%s'" % client.model)))
+
     try:
         system, user = build_messages(diag.evidence)
         raw = client.generate_json(system, user)
         analysis = validate(raw, {e.id for e in diag.evidence})
-    except (OllamaError, ValidationError) as exc:
-        out("\nAI analysis unavailable: %s\nThe rule-based diagnosis above is unaffected." % exc)
+
+    except (OllamaError, GeminiError, ValidationError) as exc:
+        out("\nAI analysis unavailable: %s\n"
+            "The rule-based diagnosis above is unaffected." % exc)
         return
+
     out(render_llm(analysis, client.model))
 
 
@@ -150,11 +169,20 @@ def main(argv=None, ask=input, out=print, runner=_real_runner, llm_client=None):
 
     if args.llm:
         try:
-            client = llm_client or OllamaClient(args.ollama_url, args.model)
-        except OllamaError as exc:
+            if llm_client:
+                client = llm_client
+
+            elif args.provider == "gemini":
+                client = GeminiClient(model=args.model)
+
+            else:
+                client = OllamaClient(args.ollama_url, args.model)
+
+        except (OllamaError, GeminiError) as exc:
             out("\nAI analysis unavailable: %s" % exc)
+
         else:
-            run_llm(diag, client, out)
+            run_llm(diag, client, out, args.provider)
 
     runnable = [a for a in diag.actions if a.command]
     if not args.interactive:

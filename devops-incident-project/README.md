@@ -1,93 +1,219 @@
-# devops-incident-project
+# AI-Powered DevOps Incident Diagnosis Agent
 
-An incident-diagnosis agent for the food-delivery UI deployment. It reads health checks,
-application logs, CI status and Kubernetes deployment status, then prints an
-evidence-labelled diagnosis and a remediation plan. **It never changes anything without
-a human typing an explicit approval for that exact action.**
+An AI-assisted DevOps incident diagnosis agent that collects operational evidence from application health checks, logs, CI pipelines, Docker containers and Kubernetes deployments.
 
-Python 3.9+, standard library only (nothing to install).
+It combines deterministic rule-based diagnosis with optional Google Gemini analysis to identify incident symptoms, distinguish observed facts from inferences, and recommend remediation steps.
 
-## Run it
+**Safety first:** The agent is read-only by default. Environment-changing actions require explicit human approval and are subject to command policy checks.
 
-```powershell
-# Diagnose (read-only; executes nothing)
-py -3 -m incident_agent diagnose `
-  --health-url http://127.0.0.1:18085/healthz `
-  --docker-container food-delivery-ui-test `
-  --ci-repo Ganeshh01/flutter-prod --ci-branch feature/devops-ci-pipeline `
-  --namespace food-delivery --deployment food-delivery-ui
+## Problem Statement
 
-# Same, but offer each suggested command for approval one at a time
-py -3 -m incident_agent diagnose ... --interactive
+During production incidents, DevOps engineers often need to investigate multiple sources independently, including application health, container logs, CI/CD pipelines and Kubernetes workloads.
+
+This project automates evidence collection and organizes the findings into an understandable incident report. AI assistance helps interpret the collected evidence while preserving traceability and human control over remediation.
+
+## Architecture
+
+```text
+Operational Sources
+       |
+       v
+Evidence Collectors
+       |
+       v
+Evidence Sanitization
+       |
+       v
+Rule-Based Diagnosis
+       |
+       v
+Optional Gemini AI Analysis
+       |
+       v
+AI Response Validation
+       |
+       v
+Incident Report
+       |
+       v
+Proposed Remediation
+       |
+       v
+Human Approval
+       |
+       v
+Policy Check + Audit Log
 ```
 
-Any source can be omitted; a missing or unreadable source is reported as an *unknown*,
-never guessed. `--logs-file <path>` reads a saved log instead of Docker. `--bundle <json>`
-replaces all live systems with a saved file (used for demos and tests).
+## Features
 
-## Local AI analysis (Ollama, optional)
+- Health endpoint monitoring
+- Docker container inspection
+- Kubernetes deployment and pod status collection
+- Application log analysis
+- GitHub Actions CI status collection
+- Evidence-based incident diagnosis
+- Observed, inferred, assumed and unknown findings
+- Optional Google Gemini-powered analysis
+- Evidence citation validation for AI findings
+- Secret and sensitive-data sanitization
+- Human approval before permitted environment-changing actions
+- Audit logging with redaction
+- Offline incident simulation using JSON evidence bundles
 
-Add `--llm` to `k8s`, `ci`, `docker`, `health` or `diagnose` to get an analysis from a **local**
-open-source model (default `phi3.5`, MIT licensed). Evidence is sanitized first and sent to
-`127.0.0.1` only. The model's answer is validated (facts must cite real evidence ids, anything else is
-labelled unsupported or an assumption), and its commands are never run. Full setup: [docs/SETUP.md](docs/SETUP.md).
+## Technology Stack
+
+- Python
+- Google Gemini API (`google-genai`)
+- Docker
+- Kubernetes
+- GitHub Actions
+- PowerShell
+- Python unittest
+
+## Project Setup
+
+Run these commands from the `devops-incident-project` directory.
+
+### 1. Create and activate a virtual environment
 
 ```powershell
-py -3 -m incident_agent llm-check
-py -3 -m incident_agent k8s --llm
-py -3 -m incident_agent k8s --bundle examples\crashloop.json --llm     # safe demo on a broken example
+python -m venv .venv
+.\\.venv\\Scripts\\Activate.ps1
 ```
 
-## Run the tests (mocks only: no cluster, network or Docker)
+### 2. Install Gemini dependencies
 
 ```powershell
-py -3 -I -m unittest discover -s tests -t . -v
+python -m pip install -r requirements-gemini.txt
 ```
 
-## How to read a report
+### 3. Configure the Gemini API key
 
-| Section | Meaning |
+```powershell
+$env:GEMINI_API_KEY = Read-Host "Enter Gemini API key"
+$env:GEMINI_MODEL = "gemini-3.5-flash-lite"
+```
+
+Never commit API keys or expose them in source code.
+
+## Run the Agent
+
+### Offline incident diagnosis
+
+```powershell
+python -m incident_agent diagnose --bundle .\\examples\\crashloop.json
+```
+
+### Gemini-powered incident diagnosis
+
+```powershell
+python -m incident_agent diagnose --bundle .\\examples\\crashloop.json --llm --provider gemini
+```
+
+### Kubernetes diagnosis
+
+```powershell
+python -m incident_agent k8s --llm --provider gemini
+```
+
+The Kubernetes command requires a configured and accessible Kubernetes context.
+
+### Interactive approval mode
+
+```powershell
+python -m incident_agent diagnose --bundle .\\examples\\crashloop.json --interactive
+```
+
+Interactive mode presents proposed actions for review. Only actions explicitly approved by the human and allowed by the execution policy can run.
+
+## Diagnosis Report
+
+The report separates findings into:
+
+| Section | Description |
 |---|---|
-| OBSERVED | Stated directly by collected evidence; cites evidence ids (E1, E2 ...). |
-| INFERRED | Reasoned from evidence; the reasoning is printed; not proven. |
-| ASSUMED | No evidence either way; always low confidence. |
-| UNKNOWNS | What could not be determined, and why. |
-| REMEDIATION PLAN | Suggestions only. Each is tagged read-only, manual, or CHANGES ENVIRONMENT. |
+| OBSERVED | Directly supported by collected evidence |
+| INFERRED | Reasoned from evidence but not proven |
+| ASSUMED | Not supported or contradicted by available evidence |
+| UNKNOWNS | Information that could not be collected or determined |
+| REMEDIATION PLAN | Suggested investigation and recovery steps |
 
-## Safety model
+AI-generated findings are validated against evidence identifiers before being displayed as a diagnosis.
 
-1. **Collectors are read-only.** Only `kubectl get/describe/logs/rollout status` and
-   `docker logs/inspect/ps` pass the guard (`collectors.assert_read_only`); anything else raises.
-2. **The agent only proposes.** A `ProposedAction` is plain data.
-3. **Execution needs an `Approval`.** It can only be created by `ApprovalGate` after a human
-   types `yes <action id>`. It is bound to that exact command, expires after 5 minutes, and
-   works once. An empty answer or end-of-input counts as a rejection.
-4. **Policy still applies after approval.** Environment-changing commands must match
-   `kubectl -n <ns> rollout restart|undo deployment/<name>` and nothing else. An action labelled
-   read-only that is not read-only is blocked.
-5. **Everything is audited** to `incident-audit.jsonl` (proposed, approved, rejected, blocked,
-   executed), with secrets redacted.
-6. **Log text is data.** It is quoted as evidence and can never create an action.
+## Safety and Security
 
-## Layout
+1. Collectors issue read-only commands.
+2. Evidence is sanitized before being sent to the external Gemini API.
+3. AI-generated commands are never automatically executed.
+4. Human approval is required for permitted environment-changing actions.
+5. Approval is bound to the exact action, expires after five minutes and can only be used once.
+6. Command policy checks remain active even after approval.
+7. Audit events are recorded with sensitive values redacted.
+8. Log content is treated as untrusted evidence, not as executable instructions.
 
-```
-incident_agent/  models.py  collectors.py  analyzer.py  approval.py  audit.py  redact.py  report.py  cli.py
-tests/           test_agent.py   (28 tests)
-ci/              container-smoke-test.sh
+**Note:** Sanitization reduces sensitive-data exposure but does not guarantee that all confidential information is removed. Use appropriate test evidence when demonstrating the hosted AI integration.
+
+## Run Tests
+
+```powershell
+python -I -m unittest discover -s tests -t . -v
 ```
 
-## Pointing it at another application
+The current automated test suite contains 63 tests covering diagnosis, evidence handling, sanitization, Gemini client behavior, approval workflows and command safety.
 
-Change the arguments only: health URL, container or log file, `owner/repo` and branch,
-namespace and deployment name. The Kubernetes pod selector assumes the label
-`app.kubernetes.io/name=<deployment>`; change it in `DeploymentCollector.collect` if yours differs.
+## Project Structure
 
-## Known limits
+```text
+devops-incident-project/
+|
+|-- incident_agent/
+|   |-- llm/
+|   |   |-- gemini_client.py
+|   |   |-- ollama_client.py
+|   |   |-- prompt.py
+|   |   |-- validate.py
+|   |
+|   |-- analyzer.py
+|   |-- approval.py
+|   |-- audit.py
+|   |-- cli.py
+|   |-- collectors.py
+|   |-- models.py
+|   |-- redact.py
+|   |-- report.py
+|
+|-- examples/
+|   |-- crashloop.json
+|
+|-- tests/
+|   |-- test_agent.py
+|   |-- test_gemini.py
+|   |-- test_llm.py
+|
+|-- docs/
+|-- requirements-gemini.txt
+|-- README.md
+```
 
-- Rules are deterministic and cover: health failing, 5xx/error-log lines, CI failures, pods not
-  ready (ImagePullBackOff, CrashLoopBackOff, config errors), restarts, warning events.
-  An LLM could be added behind the same evidence schema, but it is not part of this version.
-- GitHub CI status uses the public API, so it works for public repos only (private repos return an error,
-  reported as an unknown).
-- CI failures are classified from the step name; the step's own log is not read.
+## Known Limitations
+
+- The sample incident bundle is simulated evidence, not a live production incident.
+- The Gemini service requires internet access and an available API quota.
+- AI analysis is advisory and must be reviewed by an engineer.
+- CI failure classification may rely on the failed step name when detailed logs are unavailable.
+- Private GitHub repository access may require additional authentication configuration.
+
+## Future Improvements
+
+- FastAPI-based incident diagnosis endpoint
+- Additional cloud and Kubernetes collectors
+- Rich incident dashboards
+- More automated incident scenarios
+- Expanded integration testing
+
+## Author
+
+Ganesh Gorantala
+
+AI-Powered DevOps Incident Diagnosis Agent — demonstrating evidence-based troubleshooting, AI-assisted analysis and human-controlled remediation.

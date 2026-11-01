@@ -1,4 +1,12 @@
+
 __pycache__/
-*.pyc
-incident-audit.jsonl
+*.py[cod]
+
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
 *.jsonl
+incident-audit.jsonl
