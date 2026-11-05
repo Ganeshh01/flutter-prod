@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap'); *{box-sizing:border-box}body{margin:0;background:#080d18;color:#e8eef8;font-family:'DM Sans',sans-serif}.shell{min-height:100vh}.sidebar{position:fixed;inset:0 auto 0 0;width:225px;background:#090f1c;border-right:1px solid #1d293b;padding:23px 14px;display:flex;flex-direction:column;gap:8px}.brand{font:700 20px 'Space Grotesk';padding:4px 10px 28px;color:#4bd1e1}.brand b{color:#e8eef8}.cluster{background:#121d2d;border:1px solid #26364c;border-radius:8px;padding:12px;font-size:11px;margin-bottom:20px;color:#9aabc2}.sidebar small,.top small,.intro small,.workflow header small,.chat header small{font-size:9px;letter-spacing:1.4px;color:#7588a2;font-weight:700}.nav{display:flex;align-items:center;gap:12px;padding:11px 12px;border:0;border-radius:8px;background:none;color:#94a5bd;text-align:left;font-size:12px;cursor:pointer}.nav.active,.nav:hover{background:#142b3c;color:#54d2e3}.sidebar footer{margin-top:auto;color:#6f829b;font-size:10px;border-top:1px solid #1d293b;padding:15px 5px}main{margin-left:225px;padding:0 30px;max-width:1800px}.top{height:78px;border-bottom:1px solid #1c293b;display:flex;align-items:center;justify-content:space-between}.top h1{font:600 19px 'Space Grotesk';margin:5px 0}.green{color:#48d6a1;font-size:11px}.red{color:#ff927f;font-size:11px}.intro{display:flex;justify-content:space-between;align-items:end;padding:25px 0 19px}.intro h2{font:600 23px 'Space Grotesk';margin:7px 0 4px}.intro p{font-size:12px;color:#8597b0;margin:0}.intro>span{font-size:10px;color:#92a3ba;border:1px solid #293a50;border-radius:20px;padding:9px 12px}.intro b{color:#e7eef8;margin-left:5px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card,.panel{background:linear-gradient(145deg,#111c2b,#0c1421);border:1px solid #1f2d41;border-radius:11px}.card{padding:16px;display:grid;gap:7px}.card svg{color:#51cbdc;width:19px}.card small,.card span{font-size:10px;color:#8193ad}.card strong{font:600 20px 'Space Grotesk'}.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:15px;align-items:start}.left{display:grid;gap:14px}.panel{overflow:hidden}.workflow header,.chat header{padding:17px;border-bottom:1px solid #1d2a3c;display:flex;justify-content:space-between;align-items:center}.panel h2{font:600 14px 'Space Grotesk';margin:5px 0 0}.workflow header>span{font-size:9px;color:#e7b779;background:#30271d;padding:6px 9px;border-radius:20px}.step{display:flex;align-items:center;gap:12px;padding:14px 17px;border-bottom:1px solid #1b2738}.step:last-child{border:0}.step em{font:600 10px 'Space Grotesk';color:#71839d;font-style:normal}.step svg{color:#55cbdc;width:17px}.step div{display:grid;gap:3px}.step b{font-size:11px}.step small{font-size:9px;color:#8193ad}.step label{margin-left:auto;font-size:9px;color:#71839d}.note{padding:15px}.note b{font-size:11px}.note p{font-size:10px;line-height:1.6;color:#8b9cb3;margin-bottom:0}.chat{min-height:575px;display:flex;flex-direction:column}.chat header{border-bottom:1px solid #1d2a3c}.messages{padding:15px;display:flex;flex-direction:column;gap:14px;flex:1;max-height:440px;overflow:auto}.messages article{display:flex;gap:9px;font-size:11px;line-height:1.6}.messages article>b{color:#53cddd;background:#173243;border-radius:7px;padding:6px;height:28px}.messages article p{white-space:pre-wrap;overflow-wrap:anywhere;background:#142235;padding:10px;border-radius:3px 9px 9px;margin:0;color:#c7d3e4}.messages article.user p{background:#183446}.messages article small{display:block;color:#55cbdc;margin-top:5px}.messages details{color:#90a2ba;font-size:9px;margin-top:6px}.chat form{display:flex;margin:0 13px;padding:5px;border:1px solid #2a3b51;border-radius:8px;background:#091220}.chat input{flex:1;min-width:0;background:none;border:0;outline:0;color:white;padding:8px;font-size:10px}.chat form button{background:#2bb9cc;border:0;border-radius:6px;padding:8px;color:#07121c}.prompts{display:flex;flex-wrap:wrap;gap:5px;padding:10px 13px 14px}.prompts button{background:#111e2e;border:1px solid #2a3a50;border-radius:20px;color:#8ea1ba;padding:6px 8px;font-size:8px;cursor:pointer}.error{margin-top:12px;background:#321f1a;border:1px solid #70412d;color:#ffbd8c;border-radius:8px;padding:10px;font-size:11px}main>footer{padding:22px 0;color:#62748d;font-size:9px}@media(max-width:1050px){.grid{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.sidebar{width:58px;padding:14px 6px}.brand{font-size:0;padding:8px}.brand:after{content:'O';font-size:19px}.cluster,.sidebar small,.nav{font-size:0}.nav{justify-content:center;padding:12px 0}.sidebar footer{font-size:0}.main{margin-left:58px}main{margin-left:58px;padding:0 12px}.intro{align-items:flex-start;gap:12px;flex-direction:column}.cards{gap:7px}.card{padding:10px}.step label{display:none}}
+/* Pod Resource Table */
+
+
+/* Kubernetes Pod Resource Table */
+
+.pod-resource-panel {
+  margin-top: 24px;
+  padding: 22px;
+  border-radius: 14px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.panel-header h2 {
+  margin: 6px 0;
+}
+
+.panel-header p {
+  margin: 0;
+  opacity: 0.65;
+}
+
+.live-badge {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.resource-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.resource-table th,
+.resource-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+}
+
+.resource-table th {
+  opacity: 0.65;
+  font-weight: 600;
+}
+
+.pod-name {
+  font-weight: 500;
+}
+
+.status-running {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+}
+
+.table-footer {
+  margin-top: 14px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+
+
+.status-warning {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+}

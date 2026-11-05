@@ -133,7 +133,7 @@ def run_llm(diag, client, out, provider="ollama"):
             "The rule-based diagnosis above is unaffected." % exc)
         return
 
-    out(render_llm(analysis, client.model))
+    out(render_llm(analysis, client.model, provider))
 
 
 def main(argv=None, ask=input, out=print, runner=_real_runner, llm_client=None):

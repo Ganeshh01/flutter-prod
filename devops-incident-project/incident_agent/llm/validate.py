@@ -70,8 +70,52 @@ def _extract_json(text):
                 pass
     raise ValidationError("the model's answer is not valid JSON")
 
+def validate_resource_target(command, incident_resource):
+    """Reject kubectl commands targeting a resource other than the incident."""
 
-def validate(text, known_ids):
+    if not incident_resource or not command:
+        return True
+
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return False
+
+    if not tokens or tokens[0] != "kubectl":
+        return True
+
+    resource_types = {
+        "pod", "pods",
+        "deployment", "deployments", "deploy",
+        "statefulset", "statefulsets",
+        "daemonset", "daemonsets",
+        "replicaset", "replicasets",
+    }
+
+    for index, token in enumerate(tokens):
+
+        # Handle formats such as deployment/my-app and pod/my-pod.
+        if "/" in token:
+            resource_type, target = token.split("/", 1)
+
+            if resource_type.lower() in resource_types:
+                if target != incident_resource:
+                    return False
+
+        # Handle formats such as pod my-pod.
+        elif token.lower() in resource_types:
+            if index + 1 >= len(tokens):
+                return False
+
+            target = tokens[index + 1]
+
+            if target != incident_resource:
+                return False
+
+    return True
+
+
+def validate(text, known_ids, incident_resource=None):
     data = _extract_json(text)
     if not isinstance(data, dict):
         raise ValidationError("the model's answer is not a JSON object")
@@ -100,7 +144,19 @@ def validate(text, known_ids):
             result.problems.append("a suggested fix was malformed and was dropped")
             continue
         cmd = raw.get("command") if isinstance(raw.get("command"), str) else ""
-        result.fixes.append(Fix(raw["description"].strip()[:400], cmd.strip()[:300], classify_command(cmd)))
+        if not validate_resource_target(cmd, incident_resource):
+            result.problems.append(
+                "A suggested remediation targeting an unrelated Kubernetes resource was rejected."
+            )
+            continue
+
+        result.fixes.append(
+            Fix(
+                raw["description"].strip()[:400],
+                cmd.strip()[:300],
+                classify_command(cmd),
+            )
+        )
 
     for cmd in (data.get("verification_commands") or [])[:MAX_ITEMS]:
         if isinstance(cmd, str) and cmd.strip():

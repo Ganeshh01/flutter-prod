@@ -18,7 +18,7 @@ class GeminiClientTests(unittest.TestCase):
         with patch("incident_agent.llm.gemini_client.genai.Client"):
             client = GeminiClient(api_key="dummy-key")
 
-        self.assertEqual(client.model, "gemini-2.5-flash")
+        self.assertEqual(client.model, "gemini-3.8-flash")
 
     @patch("incident_agent.llm.gemini_client.genai.Client")
     def test_generate_json(self, mock_client_class):
@@ -37,7 +37,7 @@ class GeminiClientTests(unittest.TestCase):
 
         kwargs = mock_client.models.generate_content.call_args.kwargs
 
-        self.assertEqual(kwargs["model"], "gemini-2.5-flash")
+        self.assertEqual(kwargs["model"], "gemini-3.8-flash")
         self.assertEqual(kwargs["contents"], "user prompt")
         self.assertEqual(
             kwargs["config"].system_instruction,
